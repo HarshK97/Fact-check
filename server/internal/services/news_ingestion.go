@@ -9,6 +9,7 @@ import (
 
 	"techfact-trader/internal/models"
 
+	"github.com/gocolly/colly/v2"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -44,30 +45,83 @@ func NewNewsService() *NewsService {
 }
 
 func (s *NewsService) Ingest(url string) ([]models.Article, error) {
-	// Try treating as RSS feed
+	// 1. Try treating as RSS feed
 	feed, err := s.FeedParser.ParseURL(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse feed from %s: %w", url, err)
+	if err == nil && feed != nil {
+		var articles []models.Article
+		for _, item := range feed.Items {
+			article := models.Article{
+				ID:          generateID(item.Link),
+				Title:       item.Title,
+				URL:         item.Link,
+				Summary:     item.Description,
+				PublishedAt: getPublishTime(item),
+				Source:      feed.Title,
+			}
+			if item.Content != "" {
+				article.Content = item.Content
+			} else {
+				article.Content = item.Description
+			}
+			articles = append(articles, article)
+		}
+		return articles, nil
 	}
 
-	var articles []models.Article
-	for _, item := range feed.Items {
-		article := models.Article{
-			ID:          generateID(item.Link),
-			Title:       item.Title,
-			URL:         item.Link,
-			Summary:     item.Description,
-			PublishedAt: getPublishTime(item),
-			Source:      feed.Title,
-		}
-		if item.Content != "" {
-			article.Content = item.Content
-		} else {
-			article.Content = item.Description
-		}
-		articles = append(articles, article)
+	// 2. Fallback: Treat as single article and scrape
+	article := models.Article{
+		ID:          generateID(url),
+		URL:         url,
+		PublishedAt: time.Now(),
+		Source:      "Web Scrape",
 	}
-	return articles, nil
+
+	found := false
+	c := colly.NewCollector(
+		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
+		colly.IgnoreRobotsTxt(),
+	)
+
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+		r.Headers.Set("Accept-Language", "en-US,en;q=0.9")
+	})
+
+	// Ensure we can revisit URLs if needed (though new collector solves this)
+	// c.AllowURLRevisit = true
+
+	c.OnHTML("head > title", func(e *colly.HTMLElement) {
+		article.Title = e.Text
+		found = true
+	})
+	c.OnHTML("h1", func(e *colly.HTMLElement) {
+		// Prefer H1 over title tag if available
+		article.Title = e.Text
+	})
+	c.OnHTML("p", func(e *colly.HTMLElement) {
+		article.Content += e.Text + "\n\n"
+	})
+	// Capture meta description
+	c.OnHTML("meta[name=description]", func(e *colly.HTMLElement) {
+		article.Summary = e.Attr("content")
+	})
+
+	err = c.Visit(url)
+	if err != nil {
+		return nil, fmt.Errorf("scraping failed for %s: %w", url, err)
+	}
+
+	c.Wait()
+
+	if !found && article.Content == "" {
+		return nil, fmt.Errorf("failed to scrape content or title from %s (Status: %v)", url, "Unknown")
+	}
+
+	if article.Summary == "" && len(article.Content) > 200 {
+		article.Summary = article.Content[:200] + "..."
+	}
+
+	return []models.Article{article}, nil
 }
 
 func generateID(s string) string {
