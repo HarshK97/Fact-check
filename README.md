@@ -1,212 +1,148 @@
 # Fact-Check  
 Truth Through Transparency
 
-Fact-Check is an AI-powered system that verifies technology-related news and converts trustworthy information into actionable market insights.  
-Developed by **Team Eco Vigilance**, the project aims to reduce misinformation-driven investment decisions by utilising **responsible and explainable AI**.
+Fact-Check is an AI-powered fact-checking platform that combats misinformation in technology journalism through multi-source verification. It analyzes how multiple credible publications report the same technology news, extracts verifiable claims, and evaluates their credibility using Generative AI.
+
+Built entirely on Google’s AI and cloud ecosystem, Fact-Check delivers real-time, transparent, and explainable credibility assessments for technology-related articles.
 
 ---
 
-## Table of Contents
-- Overview  
-- Problem Statement  
-- Solution  
-- System Architecture  
-- Key Features  
-- Technology Stack  
-- How It Works  
-- Use Cases  
-- Project Objectives  
-- Responsible AI Principles  
-- Disclaimer  
-- License  
+## Themes
+- FinTech  
+- Generative AI  
 
 ---
 
 ## Overview
-Fact-Check addresses the growing challenge of misinformation in technology-driven financial markets.  
-In fast-moving environments, investors often act on unverified news, leading to emotional decisions and financial losses.
+Technology journalism often publishes bold claims about products, launches, or announcements based on limited or single-source reporting. Readers and investors usually lack efficient tools to verify whether these claims are accurate.
 
-The platform automatically:
-- Verifies technology news using trusted sources  
-- Analyses financial and sector impact  
-- Produces clear, explainable Buy / Sell / Hold insights  
-
-Fact-Check is designed for retail investors, students, analysts, and academic demonstrations.
+Fact-Check addresses this gap by comparing multiple sources, validating claims using AI, and presenting clear, evidence-based verification results. The platform is designed for educational use, research, and hackathon demonstrations, with a strong focus on transparency and responsible AI.
 
 ---
 
 ## Problem Statement
-### Challenges in Tech Investing
+Technology journalism is increasingly affected by unverified claims and single-source reporting. This creates challenges such as:
 
-**Misinformation**
-- Fake or exaggerated technology news spreads rapidly across social and digital media  
-- Investors find it difficult to identify credible and verified sources in real time  
+- Difficulty verifying article accuracy across multiple credible sources  
+- Rapid spread of exaggerated or misleading information  
+- Poor decision-making by readers and investors  
+- Loss of trust in digital journalism platforms  
 
-**Time Constraints**
-- Manual fact-checking is slow and resource-intensive  
-- Markets often react before accurate verification is completed  
+These issues impact both financial decision-making (FinTech) and information credibility, making it a suitable problem for Generative AI–based solutions.
 
-**Analysis Gap**
-- Even verified news lacks a clear explanation of the financial and market impact  
-- Investors struggle to convert information into actionable trading decisions  
-
-**Emotional Trading**
-- Fear of missing out (FOMO) and panic selling drive irrational behaviour  
-- Sensational headlines lead to overreaction and increased risk  
-
-### Impact
-- Poor investment outcomes for retail investors  
-- Increased market volatility driven by misinformation  
-- Reduced trust in digital financial information systems  
-
-### Problem Theme Alignment
-This problem statement lies at the intersection of **FinTech** and **Generative AI**:
-
-- **FinTech**: Addresses challenges in financial markets by improving decision-making, reducing misinformation-driven trades, and enhancing investor confidence through data-driven insights.  
-- **Generative AI**: Leverages advanced language models to extract claims, verify information, generate explainable insights, and translate complex financial analysis into human-readable recommendations.
-
-The project demonstrates how **Generative AI can be responsibly applied within financial technology** to solve real-world investment challenges.
-
+---
 
 ## Solution
-Fact-Check provides an end-to-end AI-driven solution with three core components:
+Fact-Check provides an automated, AI-driven solution that:
 
-### 1. Automated News Verification
-- Extracts factual claims from tech news  
-- Cross-verifies claims across trusted sources  
-- Assigns confidence scores (0–100%)
+- Collects technology articles from multiple sources  
+- Compares how different publications report the same story  
+- Extracts and verifies factual claims using AI  
+- Assigns transparent credibility scores  
+- Provides explainable, evidence-based insights  
 
-### 2. Financial Impact Analysis
-- Evaluates impact on stock prices and sectors  
-- Uses historical patterns and market indicators  
-- Assesses risk and volatility levels  
-
-### 3. Explainable Insights
-- Buy / Sell / Hold recommendations  
-- Plain-language reasoning  
-- Confidence levels and alternative scenarios  
+The system transforms single-perspective reporting into trustworthy, multi-source verification.
 
 ---
 
 ## System Architecture
-Fact-Check follows a multi-agent AI architecture:
+Fact-Check follows a **multi-agent AI architecture**, where each agent performs a specific responsibility in the verification pipeline:
 
-1. News Sources  
-   Collects technology-related news from APIs, RSS feeds, tech websites, and financial platforms.
+1. **Tech Articles Input**  
+   - APIs, RSS feeds, and technology journalism websites  
 
-2. News Verification Agent  
-   Verifies the authenticity of news, cross-checks multiple sources, and assigns confidence scores.
+2. **Multi-Source Collection**  
+   - Gathers the same article from multiple publications  
 
-3. Financial Impact Agent  
-   Analyses the impact of verified news on stock prices, market sentiment, and technology sectors.
+3. **Claim Extraction (AI)**  
+   - Identifies key claims and announcements  
 
-4. Insight Generator  
-   Combines verification and analysis to generate explainable Buy / Sell / Hold recommendations.
+4. **News Verification Agent**  
+   - Cross-verifies claims with credible sources  
+   - Assigns confidence scores  
 
-5. User Interface / API  
-   Delivers verified news and insights through a dashboard, mobile app, or API endpoints.
+5. **Decision Layer**  
+   - Classifies content as Verified or Not Verified  
+
+6. **Financial & Market Impact Analysis**  
+   - Evaluates relevance, sentiment, and potential market impact  
+
+7. **Insight Generation**  
+   - Produces clear, explainable credibility assessments  
+
+8. **User Dashboard / API**  
+   - Delivers real-time results to users  
+
 ---
 
-## Key Features
-### Fact Verification
-- Multi-source validation  
-- Real-time processing  
-- Confidence-based scoring  
-
-### Market Impact Analysis
-- Stock and sector-level analysis  
-- Competitor impact assessment  
-- Risk categorisation  
-
-### Explainable AI
-- Transparent reasoning for every insight  
-- Evidence-backed recommendations  
-- No black-box predictions  
-
-### Performance & Reliability
-- Sub-30-second analysis  
-- Scalable infrastructure  
-- Accuracy monitoring  
+## How It Works
+1. Technology articles are continuously collected from multiple sources  
+2. AI extracts factual claims from each article  
+3. Claims are cross-verified using trusted publications  
+4. Credibility scores are calculated  
+5. Market relevance is analysed  
+6. Transparent insights are delivered in real time  
 
 ---
 
 ## Technology Stack
 ### AI & Machine Learning
-- Google Gemini API (Verification)
-- Google Vertex AI (searching, analysis)
-- Google ADK
+- **Google ADK** – Agent orchestration and workflow management  
+- **Vertex AI (Flash)** – Content analysis and reasoning  
+- **Vertex AI Search** – Multi-source article discovery  
 
-### Backend
-- Golang 
-- Jin
-- Firebase
+### Backend & Cloud
+- **Google Cloud Functions** – Serverless processing  
+- **Firestore** – Results storage and caching  
+- **Google Cloud Infrastructure** – Scalability and reliability  
 
-### Data Sources
-- Tech news APIs and RSS feeds  
-- Financial market APIs  (Alpaca)
-
-### Cloud Infrastructure
-- Google Cloud Platform  
-- Cloud Run and Cloud Functions  
-- Secure secret management  
+### Frontend & Design
+- **Stitch** – UI/UX wireframe design  
+- **Google Antigravity** – Agentic development environment  
 
 ---
 
-## How It Works
-1. News sources are continuously monitored  
-2. Claims are extracted from articles  
-3. Claims are verified using trusted sources  
-4. Financial impact is analysed  
-5. Explainable insights are generated  
-6. Results are delivered via dashboard or API  
+## Key Features
+- Multi-source article verification  
+- AI-based claim extraction  
+- Real-time credibility scoring  
+- Transparent and explainable insights  
+- Technology-focused journalism analysis  
+- Scalable cloud-based architecture  
 
 ---
 
-## Use Cases
-**Retail Investors**
-- Avoid misinformation-driven trades  
-- Make confident, informed decisions  
-
-**Students and Learners**
-- Learn responsible investing  
-- Understand news-to-market relationships  
-
-**Analysts and Researchers**
-- Faster verification workflows  
-- Consistent and explainable insights  
-
-**Academic Projects**
-- Demonstration of explainable AI  
-- Real-world financial AI use case  
+## Impact
+- Reduces misinformation in technology journalism  
+- Helps readers and investors make informed decisions  
+- Builds trust through transparency and evidence  
+- Demonstrates responsible application of Generative AI  
 
 ---
 
-## Project Objectives
-- Reduce misinformation in tech investing  
-- Improve decision confidence for investors  
-- Demonstrate responsible and explainable AI  
-- Build a practical, real-world AI system  
+## Future Enhancements
+- Browser extension for instant article verification  
+- Mobile applications (iOS and Android)  
+- Enterprise features such as custom alerts and team access  
+- Expansion into additional content domains  
 
 ---
 
-## Responsible AI Principles
-- Transparency in all AI decisions  
-- Bias detection and mitigation  
-- User privacy and data protection  
-- Human oversight for critical decisions  
-- Clear communication of limitations  
+## Team
+**Team Name:** Eco Vigilants  
 
----
-
-## Disclaimer
-Fact-Check is an informational and educational tool only.
-
-- Not financial advice  
-- AI outputs may contain uncertainty  
-- Users must perform independent research  
-- Team Eco Vigilance is not liable for financial losses  
+- Team Lead: Om Songire  
+- Team Member: Yash Pawar  
+- Team Member: Aaryan Tajanpure  
+- Team Member: Harsh Kapse  
 
 ---
 
 ## License
-This project is intended for educational, academic, and hackathon use only. Commercial use requires compliance with proper regulatory and licensing requirements.
+Educational Use License  
+This project is intended for educational, academic, and hackathon use only.  
+Commercial use requires compliance with appropriate regulatory and licensing requirements.
+
+---
+Fact-Check is an informational and educational tool only.  
+It does not provide financial or legal advice, and outputs should not be treated as guarantees.
