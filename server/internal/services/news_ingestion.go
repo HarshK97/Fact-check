@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"time"
 
 	"techfact-trader/internal/models"
@@ -14,13 +15,32 @@ import (
 
 type NewsService struct {
 	FeedParser *gofeed.Parser
-	Collector  *colly.Collector
+}
+
+type headerTransport struct {
+	T http.RoundTripper
+}
+
+func (h *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	req.Header.Set("Referer", "https://www.google.com/")
+	return h.T.RoundTrip(req)
 }
 
 func NewNewsService() *NewsService {
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &headerTransport{
+			T: http.DefaultTransport,
+		},
+	}
+
+	fp := gofeed.NewParser()
+	fp.Client = client
 	return &NewsService{
-		FeedParser: gofeed.NewParser(),
-		Collector:  colly.NewCollector(),
+		FeedParser: fp,
 	}
 }
 
@@ -57,31 +77,44 @@ func (s *NewsService) Ingest(url string) ([]models.Article, error) {
 	}
 
 	found := false
-	s.Collector.OnHTML("head > title", func(e *colly.HTMLElement) {
+	c := colly.NewCollector(
+		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
+		colly.IgnoreRobotsTxt(),
+	)
+
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+		r.Headers.Set("Accept-Language", "en-US,en;q=0.9")
+	})
+
+	// Ensure we can revisit URLs if needed (though new collector solves this)
+	// c.AllowURLRevisit = true
+
+	c.OnHTML("head > title", func(e *colly.HTMLElement) {
 		article.Title = e.Text
 		found = true
 	})
-	s.Collector.OnHTML("h1", func(e *colly.HTMLElement) {
+	c.OnHTML("h1", func(e *colly.HTMLElement) {
 		// Prefer H1 over title tag if available
 		article.Title = e.Text
 	})
-	s.Collector.OnHTML("p", func(e *colly.HTMLElement) {
+	c.OnHTML("p", func(e *colly.HTMLElement) {
 		article.Content += e.Text + "\n\n"
 	})
 	// Capture meta description
-	s.Collector.OnHTML("meta[name=description]", func(e *colly.HTMLElement) {
+	c.OnHTML("meta[name=description]", func(e *colly.HTMLElement) {
 		article.Summary = e.Attr("content")
 	})
 
-	err = s.Collector.Visit(url)
+	err = c.Visit(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("scraping failed for %s: %w", url, err)
 	}
 
-	s.Collector.Wait()
+	c.Wait()
 
 	if !found && article.Content == "" {
-		return nil, fmt.Errorf("failed to scrape content or title from %s", url)
+		return nil, fmt.Errorf("failed to scrape content or title from %s (Status: %v)", url, "Unknown")
 	}
 
 	if article.Summary == "" && len(article.Content) > 200 {

@@ -8,9 +8,9 @@ export default function Hero() {
     const [url, setUrl] = useState("");
 
     const handleAnalyze = () => {
-        // In a real app we might validate the URL or pass it as a query param
-        // For now, simple navigation as requested
-        router.push("/analysis");
+        if (!url.trim()) return;
+        const encodedUrl = encodeURIComponent(url);
+        router.push(`/analysis?url=${encodedUrl}`);
     };
 
     return (
@@ -53,20 +53,15 @@ export default function Hero() {
                                             <span className="text-3xl relative top-0.5">♝</span>
                                         </div>
                                         <input
-                                            className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden text-board-light focus:outline-0 focus:ring-0 bg-transparent border-0 h-full placeholder:text-wood-light/50 px-4 text-base font-normal leading-normal font-body"
-                                            placeholder="Enter article URL to analyze position..."
+                                            type="url"
+                                            placeholder="Paste article URL here..."
+                                            className="w-full bg-transparent text-text-main-light dark:text-board-light px-5 font-body text-lg focus:outline-none placeholder:text-text-muted-light dark:placeholder:text-wood-light/40"
                                             value={url}
                                             onChange={(e) => setUrl(e.target.value)}
-                                            onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleAnalyze();
+                                            }}
                                         />
-                                        <div className="flex items-center justify-center rounded-r-lg pr-2 pl-2">
-                                            <button
-                                                onClick={handleAnalyze}
-                                                className="flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-md h-11 px-6 bg-primary hover:bg-primary-hover text-wood-dark text-sm font-bold leading-normal tracking-wide transition-all font-display shadow-lg group-hover/input:bg-primary-hover"
-                                            >
-                                                <span>Analyze</span>
-                                            </button>
-                                        </div>
                                     </div>
                                 </label>
                                 <div className="flex gap-6 items-center text-xs text-primary/60 z-10 mt-2 font-display uppercase tracking-wider">

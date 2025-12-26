@@ -1,12 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PortfolioLoading from "@/components/PortfolioLoading";
+import { api, RebalanceResponse, BenchmarkResponse } from "@/lib/api";
+import RebalanceResult from "@/components/RebalanceResult";
+import BenchmarkResult from "@/components/BenchmarkResult";
 
 export default function PortfolioOverviewPage() {
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [rebalanceData, setRebalanceData] = useState<RebalanceResponse | null>(null);
+    const [benchmarkData, setBenchmarkData] = useState<BenchmarkResponse | null>(null);
+    const [isRebalancing, setIsRebalancing] = useState(false);
+    const [isBenchmarking, setIsBenchmarking] = useState(false);
+    const [userId, setUserId] = useState("demo-user");
+
+    useEffect(() => {
+        const storedId = localStorage.getItem("portfolio_user_id");
+        if (storedId) {
+            setUserId(storedId);
+        }
+
+        const storedRebalance = localStorage.getItem("portfolio_rebalance_data");
+        if (storedRebalance) {
+            setRebalanceData(JSON.parse(storedRebalance));
+        }
+
+        const storedBenchmark = localStorage.getItem("portfolio_benchmark_data");
+        if (storedBenchmark) {
+            setBenchmarkData(JSON.parse(storedBenchmark));
+        }
+    }, []);
+
+    const handleRebalance = async () => {
+        setIsRebalancing(true);
+        try {
+            const data = await api.rebalancePortfolio(userId);
+            setRebalanceData(data);
+            localStorage.setItem("portfolio_rebalance_data", JSON.stringify(data));
+        } catch (error) {
+            console.error("Rebalance failed", error);
+        } finally {
+            setIsRebalancing(false);
+        }
+    };
+
+    const handleBenchmark = async () => {
+        setIsBenchmarking(true);
+        try {
+            const data = await api.benchmarkPortfolio(userId);
+            setBenchmarkData(data);
+            localStorage.setItem("portfolio_benchmark_data", JSON.stringify(data));
+        } catch (error) {
+            console.error("Benchmark failed", error);
+        } finally {
+            setIsBenchmarking(false);
+        }
+    };
+
+    // Calculate AI Confidence from recommendations if available
+    const aiConfidence = rebalanceData?.recommendations
+        ? Math.round(rebalanceData.recommendations.reduce((acc, rec) => acc + rec.ai_confidence, 0) / rebalanceData.recommendations.length * 100)
+        : 0;
+
 
     return (
         <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
@@ -45,13 +102,21 @@ export default function PortfolioOverviewPage() {
                                 </p>
                             </div>
                             <div className="flex gap-3">
-                                <button className="flex items-center gap-2 px-4 py-2 border border-border-light dark:border-wood-medium/50 rounded text-wood-dark dark:text-board-light hover:bg-wood-light/10 text-sm font-medium transition-colors font-display">
-                                    <span className="material-symbols-outlined text-sm">file_download</span>
-                                    Export Report
+                                <button
+                                    onClick={handleBenchmark}
+                                    disabled={isBenchmarking}
+                                    className="flex items-center gap-2 px-4 py-2 border border-border-light dark:border-wood-medium/50 rounded text-wood-dark dark:text-board-light hover:bg-wood-light/10 text-sm font-medium transition-colors font-display disabled:opacity-50"
+                                >
+                                    <span className="material-symbols-outlined text-sm">{isBenchmarking ? "sync" : "bar_chart"}</span>
+                                    {isBenchmarking ? "Benchmarking..." : "Benchmark"}
                                 </button>
-                                <button className="flex items-center gap-2 px-4 py-2 bg-wood-dark text-board-light border border-primary/20 rounded text-sm font-bold hover:bg-wood-medium transition-colors shadow-lg font-display">
-                                    <span className="material-symbols-outlined text-sm">add</span>
-                                    Add Stock
+                                <button
+                                    onClick={handleRebalance}
+                                    disabled={isRebalancing}
+                                    className="flex items-center gap-2 px-4 py-2 bg-wood-dark text-board-light border border-primary/20 rounded text-sm font-bold hover:bg-wood-medium transition-colors shadow-lg font-display disabled:opacity-50"
+                                >
+                                    <span className="material-symbols-outlined text-sm">{isRebalancing ? "sync" : "balance"}</span>
+                                    {isRebalancing ? "Rebalancing..." : "Rebalance"}
                                 </button>
                             </div>
                         </div>
@@ -82,6 +147,7 @@ export default function PortfolioOverviewPage() {
                                 <div className="absolute right-0 top-0 opacity-5 dark:opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4 text-green-500">
                                     <span className="material-symbols-outlined text-[150px]">trending_up</span>
                                 </div>
+
                                 <div className="relative z-10">
                                     <h3 className="text-wood-medium dark:text-wood-light text-xs font-bold uppercase tracking-widest mb-2 font-display">Day&apos;s P&L</h3>
                                     <div className="flex items-baseline gap-2">
@@ -93,7 +159,6 @@ export default function PortfolioOverviewPage() {
                                     </div>
                                 </div>
                             </div>
-
                             {/* AI Confidence */}
                             <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-wood-medium/50 rounded-lg p-6 relative overflow-hidden hidden lg:block">
                                 <div className="absolute right-0 top-0 opacity-5 dark:opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4 text-primary">
@@ -102,15 +167,35 @@ export default function PortfolioOverviewPage() {
                                 <div className="relative z-10">
                                     <h3 className="text-wood-medium dark:text-wood-light text-xs font-bold uppercase tracking-widest mb-2 font-display">AI Confidence</h3>
                                     <div className="flex items-baseline gap-2">
-                                        <span className="font-display text-3xl font-black text-primary">94%</span>
+                                        <span className="font-display text-3xl font-black text-primary">
+                                            {aiConfidence > 0 ? `${aiConfidence}%` : "N/A"}
+                                        </span>
                                     </div>
                                     <div className="mt-4 w-full bg-wood-medium/10 dark:bg-wood-light/10 h-1.5 rounded-full overflow-hidden">
-                                        <div className="bg-primary h-full rounded-full w-[94%] shadow-[0_0_10px_rgba(197,160,101,0.5)]"></div>
+                                        <div
+                                            className="bg-primary h-full rounded-full shadow-[0_0_10px_rgba(197,160,101,0.5)] transition-all duration-1000 ease-out"
+                                            style={{ width: `${aiConfidence}%` }}
+                                        ></div>
                                     </div>
-                                    <p className="text-xs text-wood-light/80 mt-2 italic">Calculated to 24 ply depth</p>
+                                    <p className="text-xs text-wood-light/80 mt-2 italic">
+                                        {aiConfidence > 0 ? "Based on latest strategic analysis" : "Run rebalance to calculate"}
+                                    </p>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Analysis Results Section */}
+                        {(rebalanceData || benchmarkData) && (
+                            <div className="mb-8 grid grid-cols-1 xl:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                {rebalanceData && (
+                                    <RebalanceResult data={rebalanceData} />
+                                )}
+
+                                {benchmarkData && (
+                                    <BenchmarkResult data={benchmarkData} />
+                                )}
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Left Column - Performance & Table */}

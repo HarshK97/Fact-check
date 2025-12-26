@@ -1,6 +1,16 @@
 import Link from "next/link";
 
-export default function AnalysisDashboard() {
+import { IngestResponse } from "@/lib/api";
+
+interface AnalysisDashboardProps {
+    data?: IngestResponse;
+}
+
+export default function AnalysisDashboard({ data }: AnalysisDashboardProps) {
+    if (!data) return null;
+
+    const { article, insights, recommendations } = data;
+
     return (
         <div className="layout-content-container flex flex-col max-w-[1024px] mx-auto gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Article Header Section */}
@@ -9,26 +19,25 @@ export default function AnalysisDashboard() {
                 <div className="absolute top-0 right-0 p-4 opacity-5 text-[12rem] leading-none font-serif text-primary select-none pointer-events-none transition-transform duration-700 group-hover:rotate-12">♔</div>
                 <div className="relative z-10">
                     <div className="flex flex-wrap items-center gap-4 mb-4 text-primary/80 text-sm font-display uppercase tracking-wider">
-                        <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-lg">public</span> TechDaily.com</span>
+                        <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-lg">public</span> {article.source}</span>
                         <span className="w-1 h-1 bg-primary/40 rounded-full"></span>
-                        <span>Oct 12, 2023</span>
+                        <span>{new Date(article.published_at).toLocaleDateString()}</span>
                         <span className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-wood-medium/30 border border-primary/20 text-xs text-primary">
-                            <span className="material-symbols-outlined text-sm">hourglass_empty</span> Processing Time: 1.2s
+                            <span className="material-symbols-outlined text-sm">hourglass_empty</span> Processing Time: {article.analysis_time}
                         </span>
                     </div>
                     <h1 className="text-2xl md:text-4xl font-display font-bold text-board-light mb-6 leading-tight max-w-3xl">
-                        &quot;Quantum Leap: Has Apple Solved the Qubit Stability Crisis in New M4 Chips?&quot;
+                        &quot;{article.title}&quot;
                     </h1>
                     <div className="flex flex-wrap gap-2 md:gap-4">
                         <span className="px-3 py-1 rounded bg-wood-dark border border-wood-light/30 text-wood-light text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                            <span>♙</span> Hardware
+                            <span>♙</span> Confidence: {(article.confidence_score * 100).toFixed(0)}%
                         </span>
-                        <span className="px-3 py-1 rounded bg-wood-dark border border-wood-light/30 text-wood-light text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                            <span>♙</span> Stocks
-                        </span>
-                        <span className="px-3 py-1 rounded bg-wood-dark border border-wood-light/30 text-wood-light text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                            <span>♙</span> Innovation
-                        </span>
+                        {insights.actionable && (
+                            <span className="px-3 py-1 rounded bg-wood-dark border border-wood-light/30 text-wood-light text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                                <span>♙</span> Actionable
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -38,47 +47,47 @@ export default function AnalysisDashboard() {
                 <div className="lg:col-span-2 flex flex-col gap-6">
 
                     {/* Verdict Card */}
-                    <div className="bg-surface-light dark:bg-surface-dark border-l-8 border-red-600 rounded-r-xl p-6 shadow-lg flex flex-col relative overflow-hidden">
-                        <div className="absolute inset-0 bg-red-600/5 pointer-events-none"></div>
+                    <div className={`bg-surface-light dark:bg-surface-dark border-l-8 ${article.verdict.is_true ? 'border-emerald-600' : 'border-red-600'} rounded-r-xl p-6 shadow-lg flex flex-col relative overflow-hidden`}>
+                        <div className={`absolute inset-0 ${article.verdict.is_true ? 'bg-emerald-600/5' : 'bg-red-600/5'} pointer-events-none`}></div>
                         <div className="flex items-start justify-between relative z-10">
                             <div>
-                                <h2 className="text-red-600 dark:text-red-500 font-bold font-display uppercase tracking-widest text-xs mb-2 flex items-center gap-2">
+                                <h2 className={`${article.verdict.is_true ? 'text-emerald-600 dark:text-emerald-500' : 'text-red-600 dark:text-red-500'} font-bold font-display uppercase tracking-widest text-xs mb-2 flex items-center gap-2`}>
                                     <span className="material-symbols-outlined text-sm">flag</span> Analysis Verdict
                                 </h2>
                                 <p className="text-3xl md:text-4xl font-display font-black text-wood-dark dark:text-board-light flex items-center gap-3">
-                                    BLUNDER
-                                    <span className="text-red-600 text-lg font-bold px-2 py-1 bg-red-100 dark:bg-red-900/30 rounded text-sm tracking-wide border border-red-600/20">MISLEADING</span>
+                                    {article.verdict.is_true ? 'VERIFIED' : 'MISLEADING'}
+                                    <span className={`${article.verdict.is_true ? 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 border-emerald-600/20' : 'text-red-600 bg-red-100 dark:bg-red-900/30 border-red-600/20'} text-lg font-bold px-2 py-1 rounded text-sm tracking-wide border`}>
+                                        {(article.verdict.confidence_score * 100).toFixed(0)}% CONFIDENCE
+                                    </span>
                                 </p>
                             </div>
-                            <div className="hidden md:block text-red-600/10 text-8xl font-serif leading-none -mt-4">?</div>
+                            <div className={`hidden md:block ${article.verdict.is_true ? 'text-emerald-600/10' : 'text-red-600/10'} text-8xl font-serif leading-none -mt-4`}>
+                                {article.verdict.is_true ? '✓' : '?'}
+                            </div>
                         </div>
                         <p className="mt-4 text-wood-medium dark:text-text-secondary-dark font-body text-sm leading-relaxed">
-                            The content contains significant inaccuracies regarding technical specifications and production timelines. It misinterprets patent filing US-2023-089 as an immediate product feature.
+                            {article.verdict.reasoning}
                         </p>
                     </div>
 
                     {/* Strategic Analysis */}
                     <div className="bg-surface-light dark:bg-surface-dark border border-wood-light/20 rounded-xl p-8 shadow-sm relative">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-wood-dark via-wood-medium to-transparent opacity-20"></div>
-                        <h3 className="text-xl font-display font-bold text-wood-dark dark:text-board-light mb-6 flex items-center gap-2">
-                            <span className="text-primary text-2xl">♝</span> Strategic Analysis
+                        <div className="absolute top-0 right-0 p-4 opacity-5 text-8xl font-serif text-primary select-none pointer-events-none">♗</div>
+                        <h3 className="text-lg font-display font-bold text-wood-dark dark:text-board-light mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">strategy</span> Strategic Analysis
                         </h3>
-                        <div className="prose prose-invert prose-p:text-wood-medium dark:prose-p:text-text-secondary-dark max-w-none prose-headings:font-display prose-a:text-primary">
-                            <p className="mb-4">
-                                The claim that Apple has &quot;solved&quot; qubit stability is a <strong>tactical overstatement</strong>. While the patent filing describes a novel error-correction method for thermal management, industry benchmarks confirm that practical implementation remains at least 3-5 years away (Endgame Scenarios).
-                            </p>
-                            <p className="mb-4">
-                                Furthermore, our engine cross-referenced supply chain data from TSMC (Move 14.d4). There are currently no tooling orders for the quantum-specific simplified architectures mentioned in the article. This suggests the news is speculative positioning rather than based on production reality.
-                            </p>
-                            <div className="bg-wood-light/10 p-4 rounded-lg border border-wood-light/20 my-4">
-                                <h4 className="text-sm font-bold text-wood-dark dark:text-primary mb-2 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-base">psychology</span> AI Detection Note
-                                </h4>
-                                <p className="text-xs text-wood-medium dark:text-text-secondary-dark">
-                                    Hallucination detected in paragraph 3: The article quotes a &quot;Dr. Aris Vance&quot; who does not appear in any accredited quantum physics citation database.
-                                </p>
-                            </div>
-                        </div>
+                        <p className="text-wood-dark dark:text-board-light font-body leading-relaxed mb-4">
+                            {(() => {
+                                try {
+                                    const analysisObj = typeof article.strategic_analysis === 'string'
+                                        ? JSON.parse(article.strategic_analysis)
+                                        : article.strategic_analysis;
+                                    return analysisObj?.summary || article.strategic_analysis;
+                                } catch (e) {
+                                    return article.strategic_analysis;
+                                }
+                            })()}
+                        </p>
                     </div>
 
                     {/* Verified Sources */}
@@ -202,7 +211,7 @@ export default function AnalysisDashboard() {
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
