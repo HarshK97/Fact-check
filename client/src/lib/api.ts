@@ -60,9 +60,9 @@ export interface BenchmarkResponse {
     insight: string;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
-    (process.env.NODE_ENV === 'production' 
-        ? 'https://fact-check-production-a25a.up.railway.app' 
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||
+    (process.env.NODE_ENV === 'production'
+        ? 'https://fact-check-x5p2.onrender.com'
         : 'http://localhost:8081');
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
