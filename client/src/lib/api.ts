@@ -60,7 +60,10 @@ export interface BenchmarkResponse {
     insight: string;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8081';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+    (process.env.NODE_ENV === 'production' 
+        ? 'https://fact-check-production-a25a.up.railway.app' 
+        : 'http://localhost:8081');
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
     const response = await fetch(`${BASE_URL}${url}`, options);
