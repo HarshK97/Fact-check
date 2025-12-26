@@ -1,6 +1,6 @@
 module techfact-trader
 
-go 1.25.5
+go 1.25
 
 require (
 	cloud.google.com/go/firestore v1.19.0
